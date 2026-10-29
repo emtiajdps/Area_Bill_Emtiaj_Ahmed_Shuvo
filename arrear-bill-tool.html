@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>বকেয়া বেতন ক্যালকুলেটর</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Bengali:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1b1f24; --muted:#5b6570; --line:#cfd6dd; --soft:#f4f6f8; --brand:#1f4e79; --brand-soft:#e8f0f8;
+    --ok:#1b7a43; --warn:#a15c00; --bad:#b3261e; --paper:#ffffff; --bg:#e9edf1;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:'Noto Sans Bengali','Kalpurush','SolaimanLipi',system-ui,sans-serif;line-height:1.55;font-size:15px}
+  .wrap{max-width:1180px;margin:0 auto;padding:16px}
+  h1.app{font-size:20px;margin:6px 0 2px;color:var(--brand)}
+  .sub{color:var(--muted);margin:0 0 14px;font-size:13px}
+  .layout{display:grid;grid-template-columns:340px 1fr;gap:16px;align-items:start}
+  @media(max-width:900px){.layout{grid-template-columns:1fr}}
+  .card{background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:14px}
+  .card h2{font-size:15px;margin:0 0 10px;color:var(--brand)}
+  label{display:block;font-size:13px;color:var(--muted);margin:10px 0 3px}
+  input,select{width:100%;padding:8px 9px;border:1px solid var(--line);border-radius:7px;font:inherit;background:#fff;color:var(--ink)}
+  input:focus,select:focus{outline:2px solid #9cc0e4;border-color:#6aa0d4}
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .hint{font-size:12px;color:var(--muted);margin-top:3px}
+  .chk{display:flex;gap:8px;align-items:flex-start;margin-top:12px;font-size:13px;color:var(--ink)}
+  .chk input{width:auto;margin-top:4px}
+  .warn{background:#fff6e5;border:1px solid #f0d49b;color:var(--warn);border-radius:8px;padding:8px 10px;font-size:13px;margin-top:10px}
+  .btns{display:flex;gap:8px;margin-top:14px}
+  button{font:inherit;border:1px solid var(--brand);background:var(--brand);color:#fff;border-radius:8px;padding:9px 14px;cursor:pointer}
+  button.ghost{background:#fff;color:var(--brand)}
+  /* বিল */
+  .bill{background:var(--paper);border:1px solid var(--line);border-radius:6px;padding:26px 28px;min-height:520px}
+  .bill h3{text-align:center;margin:0;font-size:21px;font-weight:700}
+  .bill h4{text-align:center;margin:2px 0 14px;font-size:16px;font-weight:500;color:#333}
+  table{border-collapse:collapse;width:100%}
+  .info td{border:1px solid var(--line);padding:6px 10px;font-size:14px}
+  .info td:first-child{width:56%;color:#222}
+  .info td:last-child{font-weight:500}
+  .sec{margin:18px 0 8px;padding-left:10px;border-left:4px solid #8a949e;font-size:15px;font-weight:600;text-align:center}
+  .grid th,.grid td{border:1px solid #8c959e;padding:5px 6px;text-align:center;font-size:13px}
+  .grid th{background:var(--soft);font-weight:600}
+  .grid tr.total td{font-weight:700;background:#fafbfc}
+  .grid td.net{font-weight:700}
+  .words{margin-top:16px;border:1px solid #8c959e;border-radius:6px;padding:10px 14px;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;font-size:14px}
+  .words b{font-weight:700}
+  .sign{display:flex;justify-content:space-between;margin-top:64px;font-size:13px}
+  .sign div{border-top:1px dashed #666;padding-top:4px;min-width:170px;text-align:center}
+  .note{font-size:12px;color:var(--muted);margin-top:14px}
+  /* হিসাবের ধাপ */
+  .calc{margin-top:16px}
+  .calc ol{margin:0;padding-left:20px;font-size:13.5px}
+  .calc li{margin:6px 0}
+  .calc code{background:var(--brand-soft);padding:1px 6px;border-radius:5px;font-family:inherit;font-weight:600}
+  .calc .eq{color:var(--muted)}
+  .badge{display:inline-block;background:var(--brand-soft);color:var(--brand);border-radius:20px;padding:1px 9px;font-size:12px;margin-left:4px}
+  .devfoot{max-width:1148px;margin:6px auto 22px;background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:16px 18px;text-align:center}
+  .devfoot .by{font-size:13px;color:var(--muted);margin:0 0 6px}
+  .devfoot .nm{font-size:16px;font-weight:700;margin:2px 0}
+  .devfoot .ln{margin:3px 0;font-size:14.5px}
+  .devfoot a{color:var(--ink);text-decoration:none;font-weight:500}
+  .devfoot a:hover{text-decoration:underline}
+  .devnote{margin:14px 0 0;text-align:left;background:#fff3dd;border:1px solid #f3dfb8;border-left:5px solid #9a4a14;border-radius:8px;padding:10px 14px;font-size:14px;color:#7a3d10}
+  @media(max-width:1180px){.devfoot{margin-left:16px;margin-right:16px}}
+  @media print{
+    .devfoot{display:none!important}
+    body{background:#fff}
+    .wrap{padding:0;max-width:none}
+    .noprint,h1.app,.sub,.calc,.layout>.card:first-child{display:none!important}
+    .layout{display:block}
+    .bill{border:none;padding:0}
+    @page{size:A4;margin:14mm}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1 class="app noprint">বকেয়া বেতন ক্যালকুলেটর</h1>
+  <p class="sub noprint">চাকরি (বেতন ও ভাতাদি) আদেশ, ২০২৬ (এস. আর. ও. নং ৩৪৭-আইন/২০২৬) অনুযায়ী জাতীয় পে স্কেল ২০২৬-এর বকেয়া বিল।</p>
+
+  <div class="layout">
+    <!-- ইনপুট -->
+    <div class="card noprint">
+      <h2>তথ্য দিন</h2>
+      <label for="name">নাম</label>
+      <input id="name" placeholder="কর্মচারীর নাম">
+      <div class="row2">
+        <div><label for="desig">পদবী</label><input id="desig" placeholder="যেমন: অডিটর"></div>
+        <div><label for="nid">এনআইডি (ঐচ্ছিক)</label><input id="nid" inputmode="numeric"></div>
+      </div>
+
+      <label for="grade">বর্তমান গ্রেড (২০১৫ স্কেল)</label>
+      <select id="grade"></select>
+
+      <label for="p30">৩০/০৬/২০২৬ তারিখের মূল বেতন (তালিকা থেকে বাছুন)</label>
+      <select id="p30"></select>
+      <div class="hint" id="p30hint"></div>
+
+      <label for="area">কর্মস্থল (বাড়ি ভাড়া ভাতার জন্য)</label>
+      <select id="area"></select>
+      <label class="chk"><input type="checkbox" id="noRent"><span>সরকারি বাসস্থানে বসবাস করেন বা ভাড়াবিহীন বাসস্থানের অধিকারী (বাড়ি ভাড়া প্রাপ্য নয়)</span></label>
+
+      <div class="row2">
+        <div><label for="from">শুরুর মাস</label><select id="from"></select></div>
+        <div><label for="to">শেষ মাস</label><select id="to"></select></div>
+      </div>
+
+      <details style="margin-top:14px">
+      <summary style="cursor:pointer;color:var(--brand);font-size:13px">উন্নত সেটিংস (সাধারণত বদলাতে হয় না)</summary>
+      <label for="drawn">ইতোমধ্যে গৃহীত মাসিক মূল বেতন</label>
+      <input id="drawn" type="number" inputmode="numeric">
+      <div class="hint">ফাঁকা রাখলে ২০১৫ স্কেলের পরবর্তী ধাপ (১ জুলাইয়ের ইনক্রিমেন্ট) ধরা হবে।</div>
+
+      <label for="sbr">বিশেষ সুবিধা হার (%)</label>
+      <input id="sbr" type="number" step="0.1" placeholder="স্বয়ংক্রিয়: গ্রেড ১–৯ এ ১০%, ১০–২০ এ ১৫%">
+      <div class="row2">
+        <div><label for="hrDrawn">গৃহীত বাড়ি ভাড়া (মাসিক)</label><input id="hrDrawn" type="number" step="0.01"></div>
+        <div><label for="sbDrawn">গৃহীত বিশেষ সুবিধা (মাসিক)</label><input id="sbDrawn" type="number" step="0.01"></div>
+      </div>
+      <div class="hint">ফাঁকা রাখলে গৃহীত বেতন × হার দিয়ে নিজে হিসাব হবে।</div>
+
+      <label for="adj">অন্যান্য সমন্বয় (+/− টাকা, ঐচ্ছিক)</label>
+      <input id="adj" type="number" value="0">
+
+      <label class="chk"><input type="checkbox" id="incl" checked>
+        <span>২০২৬ স্কেলে ধাপ ঠিক করার পর ১ জুলাইয়ের ১টি বার্ষিক ইনক্রিমেন্ট যোগ করে বৃদ্ধির পার্থক্য ধরা হবে (অনুচ্ছেদ ৯(২))</span></label>
+      </details>
+
+      <div id="warns"></div>
+      <div class="btns"><button id="print">প্রিন্ট করুন</button><button class="ghost" id="reset">রিসেট</button></div>
+    </div>
+
+    <!-- আউটপুট -->
+    <div>
+      <div class="bill" id="bill"></div>
+      <div class="card calc noprint" id="calc"></div>
+    </div>
+  </div>
+</div>
+
+<footer class="devfoot noprint">
+  <p class="by">Developed By</p>
+  <p class="nm">মোঃ ইমতিয়াজ আহম্মদ</p>
+  <p class="ln"><b>সহকারী শিক্ষক, দোঘর সপ্রাবি, কচুয়া, চাঁদপুর।</b></p>
+  <p class="ln">মোবাইলঃ <a href="tel:01851245934">01851245934</a> &nbsp;·&nbsp; <a href="https://wa.me/8801851245934" target="_blank" rel="noopener">whatsApp</a></p>
+  <div class="devnote">টিন আইডি খোলা থাকলে অবশ্যই প্রতি অর্থবছরের আয়কর রিটার্ন জমা দেয়া বাধ্যতামূলক। অন্যথায় ৫০০০ টাকা জরিমানা প্রদান করতে হবে। বিস্তারিত জানতে উপরের নম্বরে whatsApp করুন। ( পেইড সার্ভিস)</div>
+</footer>
+
+<script>
+/*CORE*/
+const S15={
+ 1:[78000],
+ 2:[66000,68840,71050,73720,76490],
+ 3:[56500,58760,61120,63570,66120,68770,71530,74400],
+ 4:[50000,52000,54080,56250,58500,60840,63280,65820,68460,71200],
+ 5:[43000,44940,46970,49090,51300,53610,56030,58560,61200,63960,66840,69850],
+ 6:[35500,37280,39150,41110,43170,45330,47600,49980,52480,55110,57870,60770,63810,67010],
+ 7:[29000,30450,31980,33580,35260,37030,38890,40840,42890,45040,47300,49670,52160,54770,57510,60390,63410],
+ 8:[23000,24150,25360,26630,27970,29370,30840,32390,34010,35720,37510,39390,41360,43430,45610,47900,50300,52820,55470],
+ 9:[22000,23100,24260,25480,26760,28100,29510,30990,32540,34170,35880,37680,39570,41550,43630,45820,48120,50530,53060],
+ 10:[16000,16800,17640,18530,19460,20440,21470,22550,23680,24870,26120,27430,28810,30260,31780,33370,35040,36800,38640],
+ 11:[12500,13130,13790,14480,15210,15980,16780,17620,18510,19440,20420,21450,22530,23660,24850,26100,27410,28790,30230],
+ 12:[11300,11870,12470,13100,13760,14450,15180,15940,16740,17580,18460,19390,20360,21380,22450,23580,24760,26000,27300],
+ 13:[11000,11550,12130,12740,13380,14050,14760,15500,16280,17100,17960,18860,19810,20810,21860,22960,24110,25320,26590],
+ 14:[10200,10710,11250,11820,12420,13050,13710,14400,15120,15880,16680,17520,18400,19320,20290,21310,22380,23500,24680],
+ 15:[9700,10190,10700,11240,11810,12410,13040,13700,14390,15110,15870,16670,17510,18390,19310,20280,21300,22370,23490],
+ 16:[9300,9770,10260,10780,11320,11890,12490,13120,13780,14470,15200,15960,16760,17600,18480,19410,20390,21410,22490],
+ 17:[9000,9450,9930,10430,10960,11510,12090,12700,13340,14010,14720,15460,16240,17060,17920,18820,19770,20760,21800],
+ 18:[8800,9240,9710,10200,10710,11250,11820,12420,13050,13710,14400,15120,15880,16680,17520,18400,19320,20290,21310],
+ 19:[8500,8930,9380,9850,10350,10870,11420,12000,12600,13230,13900,14600,15330,16100,16910,17760,18650,19590,20570],
+ 20:[8250,8670,9110,9570,10050,10560,11090,11650,12240,12860,13510,14190,14900,15650,16440,17270,18140,19050,20010]
+};
+const S26={
+ 1:[156000],
+ 2:[132000,135700,139400,143200,147200,151200,153000],
+ 3:[113000,117000,121100,125300,129700,134300,139000,143800,148800],
+ 4:[100000,103500,107200,110900,114800,118800,123000,127300,131700,136300,142400],
+ 5:[86000,89500,93100,96800,100700,104700,108900,113200,117700,122500,127800,132800,139700],
+ 6:[71000,74600,78300,82200,86400,90700,95200,100000,104900,110200,115700,121500,127600,134000],
+ 7:[58000,60900,64000,67200,70500,74100,77800,81700,85700,90000,94500,99200,104200,109400,114900,120600,126800],
+ 8:[46000,48300,50800,53300,56000,58800,61700,64800,68000,71400,75000,78700,82700,86800,91100,95700,100500,105500,110800],
+ 9:[44000,46200,48600,51000,53500,56200,59000,62000,65100,68300,71700,75300,79100,83000,87200,91500,96100,100900,105900],
+ 10:[32000,33600,35300,37100,38900,40900,42900,45100,47300,49700,52200,54800,57500,60400,63400,66600,69900,73400,77300],
+ 11:[25000,26300,27600,29000,30400,32000,33600,35200,37000,38800,40800,42800,44900,47200,49500,52000,54600,57300,60500],
+ 12:[24300,25600,26800,28200,29600,31100,32600,34200,36000,37700,39600,41600,43700,45900,48200,50600,53100,55700,58700],
+ 13:[24000,25200,26500,27800,29200,30700,32200,33800,35500,37300,39100,41100,43200,45300,47600,49900,52400,55100,58000],
+ 14:[23500,24700,26000,27300,28600,30000,31500,33100,34800,36500,38300,40200,42300,44400,46600,48900,51300,53900,56800],
+ 15:[22800,24000,25200,26400,27800,29100,30600,32100,33700,35400,37200,39000,41000,43000,45200,47800,49800,52300,55200],
+ 16:[21900,23000,24200,25400,26700,28000,29400,30900,32400,34000,35700,37500,39400,41300,43400,45600,47900,50200,52900],
+ 17:[21400,22500,23600,24800,26100,27400,28700,30200,31700,33200,34900,36700,38500,40400,42400,44500,46800,49100,51900],
+ 18:[21000,22100,23200,24400,25600,26900,28200,29600,31100,32600,34300,36000,37800,39600,41600,43700,45900,48200,50900],
+ 19:[20500,21600,22700,23800,25000,26200,27500,28900,30300,31900,33400,35100,36900,38700,40600,42700,44800,47000,49600],
+ 20:[20000,21000,22100,23200,24400,25600,26900,28200,29600,31100,32600,34300,36000,37800,39600,41600,43700,45900,48400]
+};
+const MONTHS=['জুলাই/২৬','আগস্ট/২৬','সেপ্টেম্বর/২৬','অক্টোবর/২৬','নভেম্বর/২৬','ডিসেম্বর/২৬','জানুয়ারি/২৭','ফেব্রুয়ারি/২৭','মার্চ/২৭','এপ্রিল/২৭','মে/২৭','জুন/২৭'];
+const BD='০১২৩৪৫৬৭৮৯';
+const bn=s=>String(s).replace(/\d/g,d=>BD[d]);
+const rnd2=n=>Math.round(n*100)/100;
+const money=n=>bn(rnd2(n).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}));
+const W=['শূন্য','এক','দুই','তিন','চার','পাঁচ','ছয়','সাত','আট','নয়','দশ','এগার','বার','তের','চৌদ্দ','পনের','ষোল','সতের','আঠার','ঊনিশ','বিশ','একুশ','বাইশ','তেইশ','চব্বিশ','পঁচিশ','ছাব্বিশ','সাতাশ','আটাশ','ঊনত্রিশ','ত্রিশ','একত্রিশ','বত্রিশ','তেত্রিশ','চৌত্রিশ','পঁয়ত্রিশ','ছত্রিশ','সাঁইত্রিশ','আটত্রিশ','ঊনচল্লিশ','চল্লিশ','একচল্লিশ','বিয়াল্লিশ','তেতাল্লিশ','চুয়াল্লিশ','পঁয়তাল্লিশ','ছেচল্লিশ','সাতচল্লিশ','আটচল্লিশ','ঊনপঞ্চাশ','পঞ্চাশ','একান্ন','বায়ান্ন','তিপ্পান্ন','চুয়ান্ন','পঞ্চান্ন','ছাপ্পান্ন','সাতান্ন','আটান্ন','ঊনষাট','ষাট','একষট্টি','বাষট্টি','তেষট্টি','চৌষট্টি','পঁয়ষট্টি','ছেষট্টি','সাতষট্টি','আটষট্টি','ঊনসত্তর','সত্তর','একাত্তর','বাহাত্তর','তিয়াত্তর','চুয়াত্তর','পঁচাত্তর','ছিয়াত্তর','সাতাত্তর','আটাত্তর','ঊনআশি','আশি','একাশি','বিরাশি','তিরাশি','চুরাশি','পঁচাশি','ছিয়াশি','সাতাশি','অষ্টাশি','ঊননব্বই','নব্বই','একানব্বই','বিরানব্বই','তিরানব্বই','চুরানব্বই','পঁচানব্বই','ছিয়ানব্বই','সাতানব্বই','আটানব্বই','নিরানব্বই'];
+function words(n){
+  n=Math.round(n); if(n===0) return 'শূন্য';
+  let neg=n<0; n=Math.abs(n); const p=[];
+  const cr=Math.floor(n/1e7); n%=1e7; const lk=Math.floor(n/1e5); n%=1e5;
+  const th=Math.floor(n/1e3); n%=1e3; const hu=Math.floor(n/100); const rs=n%100;
+  if(cr) p.push(W[cr]+' কোটি'); if(lk) p.push(W[lk]+' লক্ষ'); if(th) p.push(W[th]+' হাজার');
+  if(hu) p.push(W[hu]+'শত'); if(rs) p.push(W[rs]);
+  return (neg?'ঋণাত্মক ':'')+p.join(' ');
+}
+
+function wordsMoney(n){
+  n=rnd2(n); const neg=n<0; n=Math.abs(n);
+  const taka=Math.floor(n+1e-9), paisa=Math.round((n-taka)*100);
+  return (neg?'ঋণাত্মক ':'')+words(taka)+' টাকা'+(paisa?' '+words(paisa)+' পয়সা':'')+' মাত্র';
+}
+/* বাড়ি ভাড়া ভাতা: চাকরি (বেতন ও ভাতাদি) আদেশ, ২০১৫, অনুচ্ছেদ ১৭(৭) */
+const RENT=[[9700,[[65,5600],[55,5000],[50,4500]]],[16000,[[60,6400],[50,5400],[45,4800]]],[35500,[[55,9600],[45,8000],[40,7000]]],[Infinity,[[50,19500],[40,16000],[35,13800]]]];
+const AREAS=['ঢাকা সিটি কর্পোরেশন এলাকা','চট্টগ্রাম, খুলনা, রাজশাহী, সিলেট, বরিশাল, রংপুর, নারায়ণগঞ্জ ও গাজীপুর সিটি কর্পোরেশন এবং সাভার পৌর এলাকা','অন্যান্য স্থান'];
+function rentFor(basic,area){
+  const band=RENT.find(b=>basic<=b[0]); const rm=band[1][area]; const pct=basic*rm[0]/100;
+  return pct>=rm[1]?{amt:pct,rate:rm[0],min:false}:{amt:rm[1],rate:rm[0],min:true};
+}
+/* মূল হিসাব */
+function compute(o){
+  const g=o.grade, s15=S15[g], s26=S26[g], last=s26.length-1;
+  const p30=o.p30;
+  const idxOld=s15.indexOf(p30);
+  // ধাপ ১-৩: নতুন স্কেলে বেতন নির্ধারণ (অনুচ্ছেদ ৫)
+  const diff0=Math.max(0,p30-s15[0]);
+  const target=s26[0]+diff0;
+  let idx=s26.findIndex(v=>v>=target); if(idx<0) idx=last;
+  const fixed=s26[idx];
+  // ধাপ ৪: ১ জুলাই ২০২৬-এর ইনক্রিমেন্ট (অনুচ্ছেদ ৯(২))
+  const idxInc=o.incl?Math.min(idx+1,last):idx;
+  const scalePay=g===1?s26[0]:s26[idxInc];
+  // গৃহীত বেতন
+  const drawn=(o.drawn!=null&&!isNaN(o.drawn))?o.drawn:(idxOld>=0?s15[Math.min(idxOld+1,s15.length-1)]:p30);
+  const NO={amt:0,rate:0,min:false};
+  const rd=o.noRent?NO:rentFor(drawn,o.area), rdue=o.noRent?NO:rentFor(p30,o.area);
+  const hrDrawn=(o.hrDrawn!=null&&!isNaN(o.hrDrawn))?o.hrDrawn:rnd2(rd.amt);
+  const sbDrawn=(o.sbDrawn!=null&&!isNaN(o.sbDrawn))?o.sbDrawn:rnd2(Math.max(drawn*o.sbRate/100,1000));
+  const hrDue=rnd2(rdue.amt);         // অনুচ্ছেদ ১৫(১): ৩০ জুন ২০২৬-এর বেতনের ভিত্তিতে
+  const hrOver=rnd2(Math.max(0,hrDrawn-hrDue));
+  const rows=[]; let tot={due:0,drawn:0,arr:0,hrD:0,hrDue:0,hrO:0,sbD:0,net:0};
+  for(let m=o.from;m<=o.to;m++){
+    const phase2=m>=6;
+    const rate=g===1?1:(g<=9?(phase2?0.70:0.40):(phase2?0.75:0.50));
+    const due=g===1?scalePay:rnd2(p30+rate*(scalePay-p30));  // (৫)
+    const arr=rnd2(due-drawn);
+    const net=rnd2(arr-hrOver-sbDrawn);
+    rows.push({label:MONTHS[m],rate,due,drawn,arr,hrDrawn,hrDue,hrOver,sbDrawn,sbDue:0,net});
+    tot.due+=due;tot.drawn+=drawn;tot.arr+=arr;tot.hrD+=hrDrawn;tot.hrDue+=hrDue;tot.hrO+=hrOver;tot.sbD+=sbDrawn;tot.net+=net;
+  }
+  Object.keys(tot).forEach(k=>tot[k]=rnd2(tot[k]));
+  const adj=o.adj||0;
+  return {rd,rdue,g,p30,idxOld,diff0,target,fixed,scalePay,drawn,hrDrawn,sbDrawn,hrDue,hrOver,rows,tot,adj,grand:rnd2(tot.net+adj),inScale:idxOld>=0};
+}
+/*END CORE*/
+
+/* ইউআই */
+const $=id=>document.getElementById(id);
+const num=id=>{const v=$(id).value.trim(); return v===''?null:Number(v);};
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+function init(){
+  for(let g=1;g<=20;g++){const o=document.createElement('option');o.value=g;o.textContent=bn(g)+(g===1?' (নির্ধারিত)':'')+' গ্রেড';$('grade').appendChild(o);}
+  MONTHS.forEach((m,i)=>{['from','to'].forEach(id=>{const o=document.createElement('option');o.value=i;o.textContent=m;$(id).appendChild(o);});});
+  AREAS.forEach((a,i)=>{const op=document.createElement('option');op.value=i;op.textContent=a;$('area').appendChild(op);});
+  $('area').value=2; $('grade').value=11; fillStages(); $('p30').value=14480;
+  $('from').value=0; $('to').value=2;
+  ['name','desig','nid','grade','p30','drawn','area','noRent','sbr','hrDrawn','sbDrawn','from','to','adj','incl'].forEach(id=>{
+    $(id).addEventListener('input',()=>{ if(id==='grade'){fillStages();$('p30').value=S15[+$('grade').value][0];} render(); });
+    $(id).addEventListener('change',render);
+  });
+  $('print').onclick=()=>window.print();
+  $('reset').onclick=()=>{['name','desig','nid','drawn','hrDrawn','sbDrawn'].forEach(id=>$(id).value='');$('area').value=2;$('noRent').checked=false;$('sbr').value='';$('adj').value=0;$('incl').checked=true;$('grade').value=11;fillStages();$('p30').value=14480;$('from').value=0;$('to').value=2;render();};
+  render();
+}
+function fillStages(){
+  const g=+$('grade').value; const sel=$('p30'); sel.innerHTML='';
+  S15[g].forEach((v,i)=>{const o=document.createElement('option');o.value=v;o.textContent=bn(v)+' (ধাপ '+bn(i+1)+')';sel.appendChild(o);});
+}
+
+const rentTxt=(x,b)=>x.min?'ন্যূনতম '+money(x.amt):money(b)+' × '+bn(x.rate)+'%';
+function render(){
+  let g=+$('grade').value;
+  let from=+$('from').value, to=+$('to').value;
+  if(to<from){to=from;$('to').value=to;}
+  const o={grade:g,p30:num('p30')||0,drawn:num('drawn'),area:+$('area').value,noRent:$('noRent').checked,sbRate:num('sbr')??(g<=9?10:15),
+           hrDrawn:num('hrDrawn'),sbDrawn:num('sbDrawn'),from,to,adj:num('adj')||0,incl:$('incl').checked};
+  const r=compute(o);
+
+  // সতর্কতা ও হিন্ট
+  const w=[];
+  if(!r.inScale) w.push('এই বেতন ২০১৫ স্কেলের কোনো ধাপের সাথে মেলে না। গ্রেড ও অঙ্ক যাচাই করুন; গৃহীত বেতন নিজে লিখে দিন।');
+  if(g===1) w.push('১ম গ্রেডে বেতন ১,৫৬,০০০ নির্ধারিত; ধাপে ধাপে বৃদ্ধির হার (৪০/৫০%) প্রযোজ্য নয় (দফা গ)।');
+  if(g===2||g===1) w.push('২য় গ্রেডের কিছু পদের (সচিব, সিনিয়র সচিব ইত্যাদি) বেতন অনুচ্ছেদ ৩(২) অনুযায়ী আলাদা, সেগুলো এখানে ধরা হয়নি।');
+  $('warns').innerHTML=w.map(t=>'<div class="warn">'+esc(t)+'</div>').join('');
+  $('p30hint').textContent='ধাপ বাছলে বাকি সব (নতুন স্কেল, ইনক্রিমেন্ট, গৃহীত বেতন, বাড়ি ভাড়া, বিশেষ সুবিধা) নিজে বের হবে।';
+
+  // বিল
+  const R=r.rows;
+  const body=R.map(x=>`<tr><td>${x.label}</td><td>${money(x.due)}</td><td>${money(x.drawn)}</td><td>${money(x.arr)}</td>
+    <td>${money(x.hrDrawn)}</td><td>${money(x.hrDue)}</td><td>${money(x.hrOver)}</td><td>${money(x.sbDrawn)}</td><td>${bn(0)}</td><td class="net">${money(x.net)}</td></tr>`).join('');
+  const t=r.tot;
+  const from0=MONTHS[from], to0=MONTHS[to];
+  const adjRow=r.adj? `<tr><td colspan="9" style="text-align:right">অন্যান্য সমন্বয়</td><td class="net">${r.adj>0?'+':'−'}${money(Math.abs(r.adj))}</td></tr>`:'';
+  const phases=[...new Set(R.map(x=>Math.round(x.rate*100)))].map(p=>bn(p)+'%').join(' ও ');
+  $('bill').innerHTML=`
+    <h3>বকেয়া বেতনের বিবরণীপত্র</h3>
+    <h4>জাতীয় পে স্কেল বেতনের বকেয়া বিল</h4>
+    <table class="info">
+      <tr><td>নাম</td><td>${esc($('name').value)||'—'}</td></tr>
+      <tr><td>পদবী</td><td>${esc($('desig').value)||'—'}</td></tr>
+      <tr><td>এনআইডি নম্বর</td><td>${esc($('nid').value)?bn(esc($('nid').value)):'—'}</td></tr>
+      <tr><td>০১/০৭/২০২৬ খ্রি. তারিখে ইনক্রিমেন্টসহ প্রাপ্য বেতন</td><td>= ${money(R[0].due)}/-</td></tr>
+      <tr><td>ইতোমধ্যে গৃহীত বেতনের মাসিক হার</td><td>= ${money(r.drawn)}/-</td></tr>
+      <tr><td>৩০/০৬/২০২৬ খ্রি. তারিখে বেতন</td><td>= ${money(r.p30)}/-</td></tr>
+      <tr><td>বাড়ী ভাড়া গৃহীত (${r.rd.amt?rentTxt(r.rd,r.drawn):'প্রযোজ্য নয়'})</td><td>${money(r.hrDrawn)}/-</td></tr>
+      <tr><td>৩০/০৬/২০২৬ খ্রি. তারিখে বাড়ি ভাড়া (${r.rdue.amt?rentTxt(r.rdue,r.p30):'প্রযোজ্য নয়'})</td><td>= ${money(r.hrDue)}/-</td></tr>
+      <tr><td>বিশেষ সুবিধা গৃহীত (${r.sbDrawn===1000&&r.drawn*o.sbRate/100<1000?'ন্যূনতম ১,০০০':money(r.drawn)+' × '+bn(o.sbRate)+'%'})</td><td>${money(r.sbDrawn)}/-</td></tr>
+      <tr><td>বর্তমান সাবস্টানটিভ গ্রেড</td><td>${bn(g)}ম</td></tr>
+    </table>
+    <div class="sec">জাতীয় পে স্কেল জনিত কারণে ${from0.replace('/','/ ')} হতে ${to0.replace('/','/ ')} পর্যন্ত বকেয়া বিল</div>
+    <table class="grid">
+      <thead>
+        <tr><th rowspan="2">বকেয়া মাস<br>(১)</th><th colspan="3">মূল বেতন</th><th colspan="3">বাড়ী ভাড়া</th><th colspan="2">বিশেষ সুবিধা</th><th rowspan="2">মোট বকেয়া টাকা<br>৪−(৭+৮)<br>(১০)</th></tr>
+        <tr><th>প্রাপ্য<br>(২)</th><th>গৃহীত<br>(৩)</th><th>বকেয়া<br>(৪)</th><th>গৃহীত<br>(৫)</th><th>প্রাপ্য<br>(৬)</th><th>অতি. গৃহীত<br>(৭)</th><th>গৃহীত<br>(৮)</th><th>প্রাপ্য<br>(৯)</th></tr>
+      </thead>
+      <tbody>${body}
+        <tr class="total"><td>মোট</td><td>${money(t.due)}</td><td>${money(t.drawn)}</td><td>${money(t.arr)}</td><td>${money(t.hrD)}</td><td>${money(t.hrDue)}</td><td>${money(t.hrO)}</td><td>${money(t.sbD)}</td><td>${bn(0)}</td><td>${money(t.net)}</td></tr>
+        ${adjRow}
+      </tbody>
+    </table>
+    <div class="words"><span>কথায়ঃ ( <b>${wordsMoney(r.grand)}</b> )</span><span>সর্বমোট বকেয়া: <b>${money(r.grand)}/-</b></span></div>
+    <div class="sign"><div>কর্মচারীর স্বাক্ষর</div><div>নিয়ন্ত্রণকারী কর্মকর্তার স্বাক্ষর</div></div>
+    <div class="note">বৃদ্ধির হার: ${phases}। ${R.length} মাসের বকেয়া বিল${esc($('name').value)?' - '+esc($('name').value):''}।</div>`;
+
+  // হিসাবের ধাপ
+  const rate1=g<=9?'৪০%':'৫০%', rate2=g<=9?'৭০%':'৭৫%';
+  const first=R[0];
+  $('calc').innerHTML=`<h2>হিসাব যেভাবে হয়েছে</h2><ol>
+    <li><b>পার্থক্য</b> = ৩০ জুন বেতন − ২০১৫ স্কেলের প্রারম্ভিক ধাপ<br><span class="eq"><code>${money(r.p30)} − ${money(S15[g][0])} = ${money(r.diff0)}</code></span></li>
+    <li><b>লক্ষ্য বেতন</b> = ২০২৬ স্কেলের প্রারম্ভিক ধাপ + পার্থক্য (অনুচ্ছেদ ৫)<br><span class="eq"><code>${money(S26[g][0])} + ${money(r.diff0)} = ${money(r.target)}</code></span></li>
+    <li><b>নির্ধারিত বেতন</b> = লক্ষ্যের সমান, না থাকলে পরবর্তী উচ্চতর ধাপ<br><span class="eq"><code>${money(r.fixed)}</code></span></li>
+    <li><b>১ জুলাই ২০২৬-এর স্কেল বেতন</b> ${o.incl?'(১টি ইনক্রিমেন্টসহ, অনুচ্ছেদ ৯(২))':'(ইনক্রিমেন্ট ছাড়া)'}<br><span class="eq"><code>${money(r.scalePay)}</code></span></li>
+    <li><b>প্রাপ্য মূল বেতন</b> = ৩০ জুন বেতন + হার × (স্কেল বেতন − ৩০ জুন বেতন)<span class="badge">জুলাই–ডিসেম্বর ২০২৬: ${rate1}</span><span class="badge">জানুয়ারি–জুন ২০২৭: ${rate2}</span><br>
+      <span class="eq"><code>${money(r.p30)} + ${bn(Math.round(first.rate*100))}% × (${money(r.scalePay)} − ${money(r.p30)}) = ${money(first.due)}</code></span></li>
+    <li><b>মূল বেতনের বকেয়া</b> = প্রাপ্য − গৃহীত<br><span class="eq"><code>${money(first.due)} − ${money(r.drawn)} = ${money(first.arr)}</code></span></li>
+    <li><b>বাড়ি ভাড়া</b> প্রাপ্য = ৩০ জুন ২০২৬-এর বেতনের ভিত্তিতে ২০১৫ আদেশের সারণি (অনুচ্ছেদ ১৭(৭)): কর্মস্থল ও বেতনের স্তর অনুযায়ী হার ও ন্যূনতম অঙ্ক। গৃহীত অংশ বেশি হলে তা কর্তন<br><span class="eq"><code>${money(r.hrDrawn)} − ${money(r.hrDue)} = ${money(r.hrOver)}</code></span></li>
+    <li><b>বিশেষ সুবিধা</b> গৃহীত = ১ জুলাইয়ের মূল বেতন × ${bn(o.sbRate)}% (ন্যূনতম ১,০০০; অর্থ বিভাগের প্রজ্ঞাপন ০৩/০৬/২০২৫: গ্রেড ১–৯ এ ১০%, ১০–২০ এ ১৫%)। নতুন আদেশে এটি বিলুপ্ত (দফা ট), তাই গৃহীত পুরো অংশ কর্তন<br><span class="eq"><code>${money(r.sbDrawn)}</code></span></li>
+    <li><b>মাসিক নিট বকেয়া</b> = মূল বেতনের বকেয়া − অতিরিক্ত বাড়ি ভাড়া − বিশেষ সুবিধা<br><span class="eq"><code>${money(first.arr)} − ${money(r.hrOver)} − ${money(r.sbDrawn)} = ${money(first.net)}</code></span></li>
+  </ol>
+  <div class="note">সব অঙ্ক টাকা-পয়সায় হুবহু (পূর্ণ টাকায় গোল করা হয়নি)। আপনার অফিস গোল করলে সেই অনুযায়ী মিলিয়ে নিন। স্কেলের অঙ্কগুলো গেজেট থেকে নেওয়া; চূড়ান্ত করার আগে পে ফিক্সেশন (iBAS++) ও গেজেটের সাথে মিলিয়ে নিন।</div>`;
+}
+init();
+</script>
+</body>
+</html>
