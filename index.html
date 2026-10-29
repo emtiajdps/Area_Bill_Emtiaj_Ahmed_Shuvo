@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>বকেয়া বেতন ক্যালকুলেটর- Developed by Emtiaj Ahmed Shuvo</title>
+<title>বকেয়া বেতন ক্যালকুলেটর</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Bengali:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   :root{
@@ -76,7 +76,7 @@
 </head>
 <body>
 <div class="wrap">
-  <h1 class="app noprint">বকেয়া বেতন ক্যালকুলেটর by Emtiaj Ahmed Shuvo</h1>
+  <h1 class="app noprint">বকেয়া বেতন ক্যালকুলেটর</h1>
   <p class="sub noprint">চাকরি (বেতন ও ভাতাদি) আদেশ, ২০২৬ (এস. আর. ও. নং ৩৪৭-আইন/২০২৬) অনুযায়ী জাতীয় পে স্কেল ২০২৬-এর বকেয়া বিল।</p>
 
   <div class="layout">
@@ -86,8 +86,8 @@
       <label for="name">নাম</label>
       <input id="name" placeholder="কর্মচারীর নাম">
       <div class="row2">
-        <div><label for="desig">পদবী</label><input id="desig" placeholder="যেমন: সহকারী শিক্ষক"></div>
-        <div><label for="nid">এনআইডি </label><input id="nid" inputmode="numeric"></div>
+        <div><label for="desig">পদবী</label><input id="desig" placeholder="যেমন: অডিটর"></div>
+        <div><label for="nid">এনআইডি (ঐচ্ছিক)</label><input id="nid" inputmode="numeric"></div>
       </div>
 
       <label for="grade">বর্তমান গ্রেড (২০১৫ স্কেল)</label>
@@ -124,7 +124,7 @@
       <input id="adj" type="number" value="0">
 
       <label class="chk"><input type="checkbox" id="incl" checked>
-        <span>২০২৬ স্কেলে ধাপ ঠিক করার পর ১ জুলাইয়ের ১টি বার্ষিক ইনক্রিমেন্ট যোগ করে বৃদ্ধির পার্থক্য ধরা হবে (অনুচ্ছেদ ৯(২))</span></label>
+        <span>২০২৬ স্কেলে ধাপ ঠিক করার পর ১ জুলাইয়ের ১টি বার্ষিক ইনক্রিমেন্ট পূর্ণ অঙ্কে যোগ হবে; শতাংশ কেবল নির্ধারিত বেতনের পার্থক্যে বসবে (iBAS++ পদ্ধতি)</span></label>
       </details>
 
       <div id="warns"></div>
@@ -234,6 +234,7 @@ function compute(o){
   // ধাপ ৪: ১ জুলাই ২০২৬-এর ইনক্রিমেন্ট (অনুচ্ছেদ ৯(২))
   const idxInc=o.incl?Math.min(idx+1,last):idx;
   const scalePay=g===1?s26[0]:s26[idxInc];
+  const inc=g===1?0:scalePay-fixed;   // ১ জুলাইয়ের ইনক্রিমেন্ট: শতাংশ ছাড়াই পূর্ণ যোগ (iBAS++ পদ্ধতি)
   // গৃহীত বেতন
   const drawn=(o.drawn!=null&&!isNaN(o.drawn))?o.drawn:(idxOld>=0?s15[Math.min(idxOld+1,s15.length-1)]:p30);
   const NO={amt:0,rate:0,min:false};
@@ -246,7 +247,7 @@ function compute(o){
   for(let m=o.from;m<=o.to;m++){
     const phase2=m>=6;
     const rate=g===1?1:(g<=9?(phase2?0.70:0.40):(phase2?0.75:0.50));
-    const due=g===1?scalePay:rnd2(p30+rate*(scalePay-p30));  // (৫)
+    const due=g===1?scalePay:rnd2(p30+rate*(fixed-p30)+inc);  // শতাংশ কেবল নির্ধারিত বেতনের (ইনক্রিমেন্ট ছাড়া) পার্থক্যে; ইনক্রিমেন্ট পূর্ণ যোগ
     const arr=rnd2(due-drawn);
     const net=rnd2(arr-hrOver-sbDrawn);
     rows.push({label:MONTHS[m],rate,due,drawn,arr,hrDrawn,hrDue,hrOver,sbDrawn,sbDue:0,net});
@@ -254,7 +255,7 @@ function compute(o){
   }
   Object.keys(tot).forEach(k=>tot[k]=rnd2(tot[k]));
   const adj=o.adj||0;
-  return {rd,rdue,g,p30,idxOld,diff0,target,fixed,scalePay,drawn,hrDrawn,sbDrawn,hrDue,hrOver,rows,tot,adj,grand:rnd2(tot.net+adj),inScale:idxOld>=0};
+  return {rd,rdue,g,p30,idxOld,diff0,target,fixed,inc,scalePay,drawn,hrDrawn,sbDrawn,hrDue,hrOver,rows,tot,adj,grand:rnd2(tot.net+adj),inScale:idxOld>=0};
 }
 /*END CORE*/
 
@@ -320,7 +321,7 @@ function render(){
       <tr><td>বাড়ী ভাড়া গৃহীত (${r.rd.amt?rentTxt(r.rd,r.drawn):'প্রযোজ্য নয়'})</td><td>${money(r.hrDrawn)}/-</td></tr>
       <tr><td>৩০/০৬/২০২৬ খ্রি. তারিখে বাড়ি ভাড়া (${r.rdue.amt?rentTxt(r.rdue,r.p30):'প্রযোজ্য নয়'})</td><td>= ${money(r.hrDue)}/-</td></tr>
       <tr><td>বিশেষ সুবিধা গৃহীত (${r.sbDrawn===1000&&r.drawn*o.sbRate/100<1000?'ন্যূনতম ১,০০০':money(r.drawn)+' × '+bn(o.sbRate)+'%'})</td><td>${money(r.sbDrawn)}/-</td></tr>
-      <tr><td>বর্তমান গ্রেড</td><td>${bn(g)}ম</td></tr>
+      <tr><td>বর্তমান সাবস্টানটিভ গ্রেড</td><td>${bn(g)}ম</td></tr>
     </table>
     <div class="sec">জাতীয় পে স্কেল জনিত কারণে ${from0.replace('/','/ ')} হতে ${to0.replace('/','/ ')} পর্যন্ত বকেয়া বিল</div>
     <table class="grid">
@@ -344,9 +345,10 @@ function render(){
     <li><b>পার্থক্য</b> = ৩০ জুন বেতন − ২০১৫ স্কেলের প্রারম্ভিক ধাপ<br><span class="eq"><code>${money(r.p30)} − ${money(S15[g][0])} = ${money(r.diff0)}</code></span></li>
     <li><b>লক্ষ্য বেতন</b> = ২০২৬ স্কেলের প্রারম্ভিক ধাপ + পার্থক্য (অনুচ্ছেদ ৫)<br><span class="eq"><code>${money(S26[g][0])} + ${money(r.diff0)} = ${money(r.target)}</code></span></li>
     <li><b>নির্ধারিত বেতন</b> = লক্ষ্যের সমান, না থাকলে পরবর্তী উচ্চতর ধাপ<br><span class="eq"><code>${money(r.fixed)}</code></span></li>
-    <li><b>১ জুলাই ২০২৬-এর স্কেল বেতন</b> ${o.incl?'(১টি ইনক্রিমেন্টসহ, অনুচ্ছেদ ৯(২))':'(ইনক্রিমেন্ট ছাড়া)'}<br><span class="eq"><code>${money(r.scalePay)}</code></span></li>
-    <li><b>প্রাপ্য মূল বেতন</b> = ৩০ জুন বেতন + হার × (স্কেল বেতন − ৩০ জুন বেতন)<span class="badge">জুলাই–ডিসেম্বর ২০২৬: ${rate1}</span><span class="badge">জানুয়ারি–জুন ২০২৭: ${rate2}</span><br>
-      <span class="eq"><code>${money(r.p30)} + ${bn(Math.round(first.rate*100))}% × (${money(r.scalePay)} − ${money(r.p30)}) = ${money(first.due)}</code></span></li>
+    <li><b>বেতন বৃদ্ধির পরিমাণ</b> = নির্ধারিত বেতন − ৩০ জুন বেতন<br><span class="eq"><code>${money(r.fixed)} − ${money(r.p30)} = ${money(r.fixed-r.p30)}</code></span></li>
+    <li><b>১ জুলাই ২০২৬-এর ইনক্রিমেন্ট</b> ${o.incl?'(অনুচ্ছেদ ৯(২); শতাংশ ছাড়া পূর্ণ যোগ হবে)':'(ইনক্রিমেন্ট ছাড়া)'}<br><span class="eq"><code>${money(r.scalePay)} − ${money(r.fixed)} = ${money(r.inc)}</code></span></li>
+    <li><b>প্রাপ্য মূল বেতন</b> = ৩০ জুন বেতন + হার × (নির্ধারিত বেতন − ৩০ জুন বেতন) + ইনক্রিমেন্ট<span class="badge">জুলাই–ডিসেম্বর ২০২৬: ${rate1}</span><span class="badge">জানুয়ারি–জুন ২০২৭: ${rate2}</span><br>
+      <span class="eq"><code>${money(r.p30)} + ${bn(Math.round(first.rate*100))}% × (${money(r.fixed)} − ${money(r.p30)}) + ${money(r.inc)} = ${money(first.due)}</code></span></li>
     <li><b>মূল বেতনের বকেয়া</b> = প্রাপ্য − গৃহীত<br><span class="eq"><code>${money(first.due)} − ${money(r.drawn)} = ${money(first.arr)}</code></span></li>
     <li><b>বাড়ি ভাড়া</b> প্রাপ্য = ৩০ জুন ২০২৬-এর বেতনের ভিত্তিতে ২০১৫ আদেশের সারণি (অনুচ্ছেদ ১৭(৭)): কর্মস্থল ও বেতনের স্তর অনুযায়ী হার ও ন্যূনতম অঙ্ক। গৃহীত অংশ বেশি হলে তা কর্তন<br><span class="eq"><code>${money(r.hrDrawn)} − ${money(r.hrDue)} = ${money(r.hrOver)}</code></span></li>
     <li><b>বিশেষ সুবিধা</b> গৃহীত = ১ জুলাইয়ের মূল বেতন × ${bn(o.sbRate)}% (ন্যূনতম ১,০০০; অর্থ বিভাগের প্রজ্ঞাপন ০৩/০৬/২০২৫: গ্রেড ১–৯ এ ১০%, ১০–২০ এ ১৫%)। নতুন আদেশে এটি বিলুপ্ত (দফা ট), তাই গৃহীত পুরো অংশ কর্তন<br><span class="eq"><code>${money(r.sbDrawn)}</code></span></li>
